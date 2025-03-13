@@ -3,3 +3,24 @@
 # You can modify this file to suit your needs.
 /.esphome/
 /secrets.yaml
+.vscode
+
+build
+
+*.old
+*.o
+*.s
+
+.DS_Store
+
+*.orig
+
+*.swp
+
+docs/def/**
+docs/html/**
+docs/man/man3/_**_.3
+
+CMakeLists.txt
+Makefile
+*.mk

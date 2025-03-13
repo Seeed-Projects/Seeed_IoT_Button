@@ -5,8 +5,6 @@
 /secrets.yaml
 .vscode
 
-build
-
 *.old
 *.o
 *.s

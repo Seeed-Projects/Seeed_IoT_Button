@@ -15,7 +15,7 @@ jobs:
       #### Modify below here to match your project ####
       files: |
         seeed_iot_button_example.yaml
-      esphome-version: 2024.10.3
+      esphome-version: 2024.12.2
       #### Modify above here to match your project ####
 
       release-summary: ${{ github.event.release.body }}

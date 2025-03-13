@@ -1,4 +1,4 @@
-# About
+# Seeed Studio IoT Button Firmware Flasher
 
 Add some information about your project here.
 

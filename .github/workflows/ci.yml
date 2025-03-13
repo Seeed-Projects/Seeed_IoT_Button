@@ -22,15 +22,11 @@ jobs:
       matrix:
         #### Modify below here to match your project ####
         file:
-          - project-template-esp32
-          - project-template-esp32-c3
-          - project-template-esp32-s3
+          - seeed_iot_button_example
         #### Modify above here to match your project ####
 
         esphome-version:
           - stable
-          - beta
-          - dev
     steps:
       - name: Checkout source code
         uses: actions/checkout@v4.2.2
@@ -38,9 +34,4 @@ jobs:
         uses: esphome/build-action@v6.0.0
         with:
           yaml-file: ${{ matrix.file }}.yaml
-          version: ${{ matrix.esphome-version }}
-      - name: ESPHome ${{ matrix.esphome-version }} Factory
-        uses: esphome/build-action@v6.0.0
-        with:
-          yaml-file: ${{ matrix.file }}.factory.yaml
           version: ${{ matrix.esphome-version }}

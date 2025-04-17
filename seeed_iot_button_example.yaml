@@ -233,6 +233,7 @@ light:
   - platform: esp32_rmt_led_strip
     internal: true
     pin: GPIO19
+    rmt_channel: 0
     num_leds: 1
     chipset: WS2812
     rgb_order: GRB

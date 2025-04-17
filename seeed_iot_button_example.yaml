@@ -8,7 +8,7 @@ esphome:
   name_add_mac_suffix: true
   project:
     name: "seeedstudio.iot_button"
-    version: "3.0"
+    version: "3.1"
   platformio_options:
     board_upload.maximum_size: 4194304
   on_boot:

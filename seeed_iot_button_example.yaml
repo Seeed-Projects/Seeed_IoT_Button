@@ -11,7 +11,6 @@ esphome:
     version: "3.0"
   platformio_options:
     board_upload.maximum_size: 4194304
-  min_version: "2024.3.2" # Fix logger compile error on ESP32-C6 esphome#6323
   on_boot:
     priority: -100.0
     then:
@@ -233,11 +232,10 @@ light:
   - platform: esp32_rmt_led_strip
     internal: true
     pin: GPIO19
-    rmt_channel: 0
     num_leds: 1
+    restore_mode: RESTORE_AND_OFF
     chipset: WS2812
     rgb_order: GRB
-    restore_mode: ALWAYS_OFF
     is_rgbw: False
     name: "RGB Status LED"
     id: rgb_led

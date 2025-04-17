@@ -8,7 +8,7 @@ esphome:
   name_add_mac_suffix: true
   project:
     name: "seeedstudio.iot_button"
-    version: "2.0"
+    version: "3.0"
   platformio_options:
     board_upload.maximum_size: 4194304
   min_version: "2024.3.2" # Fix logger compile error on ESP32-C6 esphome#6323
@@ -16,6 +16,12 @@ esphome:
     priority: -100.0
     then:
       - light.turn_on: blue_led
+      - delay: 5min  # Wait for initialization
+      - logger.log: "Boot complete, entering light sleep"
+      - light.turn_off: blue_led
+      # - wifi.disable:
+      - light_sleep.enter:
+          id: light_sleep_1
 
 esp32:
   board: esp32-c6-devkitc-1
@@ -23,7 +29,29 @@ esp32:
   flash_size: 4MB # upload.flash_size
   framework:
     type: esp-idf
+    sdkconfig_options:
+      CONFIG_FREERTOS_UNICORE: y
+      CONFIG_FREERTOS_HZ: '1000'
+      CONFIG_PM_USE_RTC_TIMER_REF: y
+      CONFIG_XTAL_FREQ_40: y
+      CONFIG_ESP_DEFAULT_CPU_FREQ_MHZ: '80000000'
+      CONFIG_PM_DFS_INIT_AUTO: n
+      CONFIG_FREERTOS_USE_TICKLESS_IDLE: y
+      CONFIG_PM_ENABLE: y
+      CONFIG_PM_SLP_IRAM_OPT: y
+      CONFIG_PM_RTOS_IDLE_OPT: y
+      CONFIG_ESP_WIFI_SLP_IRAM_OPT: y
+      CONFIG_PM_POWER_DOWN_CPU_IN_LIGHT_SLEEP: y
+      CONFIG_PM_PROFILING: y
 
+external_components:
+  - source:
+      type: git
+      url: https://github.com/Seeed-Studio/xiao-esphome-projects
+      ref: main
+    components: [ light_sleep ]
+    refresh: 0s
+    
 # Enable logging
 logger:
   hardware_uart: USB_SERIAL_JTAG
@@ -45,24 +73,21 @@ wifi:
     then:
       - logger.log: "WiFi Connected!"
       # Show green color for 3 seconds then turn off to save power
-      - light.turn_on: blue_led
+      - light.turn_on: 
+          id: rgb_led
+          brightness: 100%
+          red: 0%
+          green: 100%
+          blue: 0%
+          effect: "Subtle Flicker"
       - delay: 1s
+      - light.turn_off: rgb_led
       - light.turn_off: blue_led
-      # - light.turn_on:
-      #     id: rgb_led
-      #     brightness: 100%
-      #     red: 0%
-      #     green: 100%
-      #     blue: 0%
-      # - delay: 3s
-      # - light.turn_off: rgb_led
 
   on_disconnect:
     then:
       - logger.log: "WiFi Disconnected!"
       - light.turn_on: blue_led
-      - delay: 5s
-      - light.turn_off: blue_led
 
 captive_portal:
 
@@ -74,6 +99,18 @@ output:
   - platform: gpio
     pin: GPIO18
     id: enable_pin
+
+light_sleep:
+  id: light_sleep_1
+  wakeup_pin: 9
+  on_wakeup:
+    then:
+      - light.turn_on: blue_led
+      - wifi.enable:
+      - logger.log: "Device woke up from light sleep"
+      - globals.set:
+          id: last_activity_time
+          value: !lambda 'return millis();'
 
 # Switch to control the LED strip power
 switch:
@@ -98,6 +135,9 @@ switch:
           effect: "Blink"
       - delay: 1s
       - light.turn_off: rgb_led
+      - globals.set:
+          id: last_activity_time
+          value: !lambda 'return millis();'
       # Add your switch-on action
     turn_off_action:
       - logger.log: "Single Short Clicked"
@@ -108,6 +148,9 @@ switch:
           effect: "Blink"
       - delay: 1s
       - light.turn_off: rgb_led
+      - globals.set:
+          id: last_activity_time
+          value: !lambda 'return millis();'
       # Add your closing action
 
   - platform: template
@@ -118,7 +161,7 @@ switch:
       - logger.log: "Double Clicked"
       - logger.log: "Switch 2 turned ON"
       # Double blink blue LED to indicate button press
-      - light.turn_on: 
+      - light.turn_on:
           id: rgb_led
           brightness: 100%
           red: 100%
@@ -127,12 +170,15 @@ switch:
           effect: "Subtle Flicker"
       - delay: 1s
       - light.turn_off: rgb_led
+      - globals.set:
+          id: last_activity_time
+          value: !lambda 'return millis();'
       # Add your switch-on action
     turn_off_action:
       - logger.log: "Double Clicked"
       - logger.log: "Switch 2 turned OFF"
       # Double blink blue LED to indicate button press
-      - light.turn_on: 
+      - light.turn_on:
           id: rgb_led
           brightness: 100%
           red: 100%
@@ -141,6 +187,9 @@ switch:
           effect: "Subtle Flicker"
       - delay: 1s
       - light.turn_off: rgb_led
+      - globals.set:
+          id: last_activity_time
+          value: !lambda 'return millis();'
       # Add your closing action
 
   - platform: template
@@ -156,6 +205,9 @@ switch:
           effect: "Rainbow"
       - delay: 1s
       - light.turn_off: rgb_led
+      - globals.set:
+          id: last_activity_time
+          value: !lambda 'return millis();'
       # Add your switch-on action
     turn_off_action:
       - logger.log: "Long Press"
@@ -166,7 +218,11 @@ switch:
           effect: "Rainbow"
       - delay: 1s
       - light.turn_off: rgb_led
+      - globals.set:
+          id: last_activity_time
+          value: !lambda 'return millis();'
       # Add your closing action
+
 
 light:
   - platform: binary
@@ -174,11 +230,8 @@ light:
     output: user_led
     id: blue_led
     internal: true
-
-  # WS2812B RGB LED definition using ESP32 RMT LED Strip
   - platform: esp32_rmt_led_strip
     internal: true
-    rmt_channel: 0
     pin: GPIO19
     num_leds: 1
     chipset: WS2812
@@ -215,25 +268,73 @@ binary_sensor:
     pin:
       number: GPIO9
       inverted: True
+      mode:
+        input: True
+        pullup: True
     name: "SeeedStudio IoT Button"
     on_multi_click:
-    - timing:
-        - ON for at most 200ms
-        - OFF for at least 0.5s
-      then:
-        - logger.log: "Single Short Clicked"
-        - switch.toggle: virtual_toggle_1
-    - timing:
-        - ON for at most 200ms
-        - OFF for at most 0.5s
-        - ON for at most 200ms
-        - OFF for at least 0.2s
-      then:
-        - logger.log: "Double Clicked"
-        - switch.toggle: virtual_toggle_2
-    - timing:
-        - ON for 1s to 2.5s
-        - OFF for at least 0.5s
-      then:
-        - logger.log: "Long Press"
-        - switch.toggle: virtual_toggle_3
+      - timing:
+          - ON for at most 200ms
+          - OFF for at least 0.5s
+        then:
+          - logger.log: "Single Short Clicked"
+          - switch.toggle: virtual_toggle_1
+
+      - timing:
+          - ON for at most 200ms
+          - OFF for at most 0.5s
+          - ON for at most 200ms
+          - OFF for at least 0.2s 
+        then:
+          - logger.log: "Double Clicked"
+          - switch.toggle: virtual_toggle_2
+
+      - timing:
+          - ON for 1s to 2.5s
+          - OFF for at least 0.5s
+        then:
+          - logger.log: "Long Press"
+          - switch.toggle: virtual_toggle_3
+    on_press:
+      - globals.set:
+          id: button_press_time
+          value: !lambda 'return millis();'
+      - globals.set:
+          id: last_activity_time
+          value: !lambda 'return millis();'
+    on_release:
+      - globals.set:
+          id: last_activity_time
+          value: !lambda 'return millis();'
+      - if:
+          condition:
+            lambda: 'return (millis() - id(button_press_time)) >= 9000;'
+          then:
+            - logger.log: "Entering Light Sleep Mode"
+            - light.turn_off: blue_led
+            - wifi.disable:
+            - light_sleep.enter:
+                id: light_sleep_1
+
+globals:
+  - id: button_press_time
+    type: uint32_t
+    restore_value: no
+    initial_value: '0'
+  - id: last_activity_time
+    type: uint32_t
+    restore_value: no
+    initial_value: '0'
+
+interval:
+  - interval: 10s
+    then:
+      - if:
+          condition:
+            lambda: 'return (millis() - id(last_activity_time)) >= 120000;'
+          then:
+            - logger.log: "No activity for 2 minutes, entering light sleep"
+            - light.turn_off: blue_led
+            - wifi.disable:
+            - light_sleep.enter:
+                id: light_sleep_1

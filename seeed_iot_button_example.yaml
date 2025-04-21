@@ -8,7 +8,7 @@ esphome:
   name_add_mac_suffix: true
   project:
     name: "seeedstudio.iot_button"
-    version: "3.1"
+    version: "3.2"
   platformio_options:
     board_upload.maximum_size: 4194304
   on_boot:
@@ -294,26 +294,26 @@ binary_sensor:
         then:
           - logger.log: "Long Press"
           - switch.toggle: virtual_toggle_3
-    on_press:
-      - globals.set:
-          id: button_press_time
-          value: !lambda 'return millis();'
-      - globals.set:
-          id: last_activity_time
-          value: !lambda 'return millis();'
-    on_release:
-      - globals.set:
-          id: last_activity_time
-          value: !lambda 'return millis();'
-      - if:
-          condition:
-            lambda: 'return (millis() - id(button_press_time)) >= 9000;'
-          then:
-            - logger.log: "Entering Light Sleep Mode"
-            - light.turn_off: blue_led
-            - wifi.disable:
-            - light_sleep.enter:
-                id: light_sleep_1
+    # on_press:
+    #   - globals.set:
+    #       id: button_press_time
+    #       value: !lambda 'return millis();'
+    #   - globals.set:
+    #       id: last_activity_time
+    #       value: !lambda 'return millis();'
+    # on_release:
+    #   - globals.set:
+    #       id: last_activity_time
+    #       value: !lambda 'return millis();'
+    #   - if:
+    #       condition:
+    #         lambda: 'return (millis() - id(button_press_time)) >= 9000;'
+    #       then:
+    #         - logger.log: "Entering Light Sleep Mode"
+    #         - light.turn_off: blue_led
+    #         - wifi.disable:
+    #         - light_sleep.enter:
+    #             id: light_sleep_1
 
 globals:
   - id: button_press_time

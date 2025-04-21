@@ -104,7 +104,6 @@ light_sleep:
   wakeup_pin: 9
   on_wakeup:
     then:
-      - light.turn_on: blue_led
       - wifi.enable:
       - logger.log: "Device woke up from light sleep"
       - globals.set:

@@ -1,29 +1,16 @@
 # Seeed Studio IoT Button
 
-This repository contains firmware implementations for the Seeed Studio IoT Button, supporting both ESPHome and Zigbee connectivity options.
+This repository contains the Zigbee implementation for the Seeed Studio IoT Button. For the ESPHome implementation, please visit [xiao-esphome-projects](https://github.com/Seeed-Studio/xiao-esphome-projects/tree/main/projects/seeedstudio-iot-button).
 
 ## Project Overview
 
-The Seeed Studio IoT Button is a versatile IoT device that can be integrated with smart home systems. This project provides two implementation options:
-
-1. **ESPHome Implementation**: Configure the button as an ESPHome device for direct integration with Home Assistant.
-2. **Zigbee Implementation**: Use the button as a Zigbee device for integration with any Zigbee-compatible hub.
+The Seeed Studio IoT Button is a versatile IoT device that can be integrated with smart home systems. This repository provides the Zigbee implementation for integration with any Zigbee-compatible hub.
 
 ## Features
 
 - Multiple button actions: single click, double click, and long press
-- Easy integration with Home Assistant
-- Web-based firmware installation using ESP Web Tools
-- Automatic firmware builds via GitHub Actions
-
-## ESPHome Implementation
-
-The ESPHome configuration (`seeed_iot_button_example.yaml`) provides:
-
-- Button press detection with multiple actions
-- Virtual switches that can be toggled by different button actions
-- Wi-Fi connectivity with fallback access point
-- OTA update capability
+- Easy integration with Zigbee networks
+- Factory reset capability via long press
 
 ## Zigbee Implementation
 
@@ -42,8 +29,7 @@ You can install the firmware directly to your device using the web installer ava
 
 To modify the firmware:
 
-1. For ESPHome: Edit the `seeed_iot_button_example.yaml` file
-2. For Zigbee: Modify the Arduino sketch in the `Zigbee_Seeed_IoT_Button` directory
+1. For Zigbee: Modify the Arduino sketch in the `Zigbee_Seeed_IoT_Button` directory
 
 ## CI/CD
 
